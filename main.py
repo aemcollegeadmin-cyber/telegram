@@ -1,5 +1,4 @@
 from telethon import TelegramClient
-from telethon.tl.types import Channel
 from flask import Flask, jsonify
 import asyncio
 import re
@@ -8,7 +7,6 @@ import os
 
 API_ID = int(os.environ.get('API_ID', '0'))
 API_HASH = os.environ.get('API_HASH', '')
-PHONE = os.environ.get('PHONE', '')
 PORT = int(os.environ.get('PORT', '5055'))
 
 CHANNELS = [
@@ -33,6 +31,7 @@ SALARY_REGEX = re.compile(
     r'(1[0-5][\s]?000|[5-9][\s]?000)[\s]*(грн|uah|₴)', re.IGNORECASE
 )
 
+# Читаємо сесію з файлу який є в репо
 client = TelegramClient('session', API_ID, API_HASH)
 
 @app.route('/health')
@@ -99,8 +98,11 @@ async def get_jobs():
     return results[:15]
 
 async def start_client():
-    await client.start(PHONE)
-    print('Telethon підключено!')
+    await client.connect()
+    if not await client.is_user_authorized():
+        print('ПОМИЛКА: сесія не авторизована!')
+    else:
+        print('Telethon підключено успішно!')
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
